@@ -1,0 +1,65 @@
+{
+"AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Cloudformation Template to add API Gateway, Lambda and Palo Alto Networks NGFW components to support Cross Zone HA",
+    "Metadata": {
+
+    },
+    "Parameters": {
+    
+    },
+    "Mappings": {
+
+    },
+    "Conditions": {
+
+    },
+    "Resources": {    
+        "crosszonerole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [ {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": "lambda.amazonaws.com"
+                        },
+                    "Action": "sts:AssumeRole"
+                    } ]
+                },
+                "Path":"/",
+                "RoleName": "CrossZoneRolePaloAlto",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+                  ],
+                "Policies": [ {
+                    "PolicyName" : "CrossZonePolPaloAlto",
+                    "PolicyDocument": {
+                        "Version" : "2012-10-17",
+                        "Statement": [
+                            {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:CreateRoute",
+                                "ec2:DeleteRoute",
+                                "logs:*",
+                                "ec2:DescribeRouteTables",
+                                "ec2:ReplaceRoute",
+                                "ec2:AssociateRouteTable",
+                                "ec2:DescribeSecurityGroups",
+                                "ec2:DescribeSubnets",
+                                "ec2:DescribeVpcs"
+                            ],
+                            "Resource": [
+                            "*"
+                            ]
+                        }]
+                    }
+                }]
+            }
+        }
+    },
+    "Outputs": {
+
+    }
+}
