@@ -4,12 +4,15 @@ XXX_VPC_CIDR_XXX
 XXX_SECOND_IP_OF_VPC_CIDR_XXX
 XXX_YOUR_API_GATEWAY_HOST__XXX
 XXX_First_IP_of_Trust_subnet_XXX
+XXX_Lambda1_CIDR_XXX
+XXX_Lambda2_CIDR_XXX
 Fw Trust IPs
 Fw ETH1 ETH2 ENIs
 
 set mgt-config users admin password
 commit 
 
+configure
 set deviceconfig system dns-setting servers primary XXX_SECOND_IP_OF_VPC_CIDR_XXX
 
 set network interface ethernet ethernet1/1 layer3 dhcp-client create-default-route yes enable yes 
@@ -24,11 +27,26 @@ set network virtual-router default routing-table ip static-route vpccidr destina
 
 commit
 
-set rulebase security rules allowping1 from any to any source XXX_PEER_TRUST_IP_XXX application ping action allow service application-default 
-move rulebase security rules allowping top
 
-set rulebase nat rules pingnat2 source XXX_PEER_TRUST_IP_XXX service any destination any to trust dynamic-destination-translation translated-address 8.8.8.8 distribution round-robin 
-set rulebase nat rules pingnat2 source-translation dynamic-ip-and-port interface-address interface ethernet1/1 
+set address pathcheckfqdn fqdn neverssl.com
+set address trustip ip-netmask XXX_LOCAL_TRUST_IP_XXX
+set address peertrustip ip-netmask XXX_PEER_TRUST_IP_XXX
+set address lambdasn1 ip-netmask XXX_Lambda1_CIDR_XXX
+set address lambdasn2 ip-netmask XXX_Lambda2_CIDR_XXX
+
+set rulebase security rules allowping from any to any source peertrustip application ping action allow service application-default 
+set rulebase security rules allowpathcheck source lambdasn1 service service-http to any application any action allow destination any 
+set rulebase security rules allowpathcheck source lambdasn2 service service-http to any application any action allow destination any 
+move rulebase security rules allowping top
+move rulebase security rules allowpathcheck after allowping
+
+set rulebase nat rules pingnat source peertrustip service any destination any to trust dynamic-destination-translation translated-address 8.8.8.8 distribution round-robin 
+set rulebase nat rules pingnat source-translation dynamic-ip-and-port interface-address interface ethernet1/1 
+
+set rulebase nat rules pathchecknat source lambdasn1 from any service service-http destination trustip source-translation dynamic-ip-and-port interface-address interface ethernet1/1
+set rulebase nat rules pathchecknat source lambdasn2 to trust dynamic-destination-translation translated-address pathcheckfqdn
+
+commit
 
 set network virtual-router default routing-table ip static-route "Monitor" nexthop ip-address XXX_FirstIPofTrustSubnet_XXX
 set network virtual-router default routing-table ip static-route "Monitor" interface ethernet1/2
