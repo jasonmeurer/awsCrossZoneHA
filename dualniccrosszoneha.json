@@ -5,7 +5,23 @@
 
     },
     "Parameters": {
-    
+        "S3Bucket": {
+            "Description": "S3 Bucket containing Lambda service code",
+            "Type": "String"
+        },
+        "S3Key": {
+            "Description": "S3 Zip file containg Lambda service code",
+            "Type": "String",
+            "Default": "crosszoneha.zip"
+        },
+        "LambdaSubnetIDs" : {
+            "Description" : "Choose 2 Lambda Subnet IDs",
+            "Type" : "List<AWS::EC2::Subnet::Id>"
+        },
+        "LambdaSecurityID" : {
+            "Description" : "Choose the lambda security group",
+            "Type" : "List<AWS::EC2::SecurityGroup::Id>"
+        }
     },
     "Mappings": {
 
@@ -14,7 +30,7 @@
 
     },
     "Resources": {    
-        "crosszonerole": {
+        "CrossZoneRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
                 "AssumeRolePolicyDocument": {
@@ -28,12 +44,12 @@
                     } ]
                 },
                 "Path":"/",
-                "RoleName": "CrossZoneRolePaloAlto",
+                "RoleName": {"Fn::Join": ["-", ["CrossZoneHARole", { "Ref": "AWS::StackName" }]]},
                 "ManagedPolicyArns": [
                     "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
                   ],
                 "Policies": [ {
-                    "PolicyName" : "CrossZonePolPaloAlto",
+                    "PolicyName" : {"Fn::Join": ["-", ["CrossZoneHAPol", { "Ref": "AWS::StackName" }]]},
                     "PolicyDocument": {
                         "Version" : "2012-10-17",
                         "Statement": [
@@ -56,6 +72,26 @@
                         }]
                     }
                 }]
+            }
+        },
+        "CrossZoneLambda": {
+            "Type": "AWS::Lambda::Function",
+            "DependsOn" : "CrossZoneRole",
+            "Properties": {
+                "FunctionName": {"Fn::Join": ["-", ["CrossZoneHALambda", { "Ref": "AWS::StackName" }]]},
+                "Code": {
+                    "S3Bucket": {"Ref": "S3Bucket"},
+                    "S3Key": {"Ref": "S3Key"}
+                },
+                "Description": "CrossZoneHA for Palo Alto Networks virtual firewalls",
+                "Handler": "crosszonehawithpathcheck.lambda_handler",
+                "Role": {"Fn::GetAtt": ["CrossZoneRole", "Arn"]},
+                "Runtime": "python3.8",
+                "Timeout": 30,
+                "VpcConfig": {
+                    "SecurityGroupIds" :  {"Ref":"LambdaSecurityID"} ,
+                    "SubnetIds" :  {"Ref":"LambdaSubnetIDs"} 
+                }
             }
         }
     },
