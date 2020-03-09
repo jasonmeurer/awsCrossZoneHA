@@ -7,7 +7,8 @@
     "Parameters": {
         "S3Bucket": {
             "Description": "S3 Bucket containing Lambda service code",
-            "Type": "String"
+            "Type": "String",
+            "Default": "jjmcrosszoneha"
         },
         "S3Key": {
             "Description": "S3 Zip file containg Lambda service code",
@@ -24,7 +25,8 @@
         },
         "VPCID" : {
             "Description" : "Choose the VPC",
-            "Type" : "AWS::EC2::VPC::Id"
+            "Type" : "AWS::EC2::VPC::Id",
+            "Default": "vpc-0618f904d06212d5a"
         }
     },
     "Mappings": {
@@ -117,15 +119,136 @@
                 }
             }
         },
-        "TransitVpcWebApi": {
+        "XZoneHaApi": {
             "Type": "AWS::ApiGateway::RestApi",
+            "DependsOn" : "APIEndpoint",
             "Properties": {
-                "Name": "CrossZoneHaApiGw",
+                "EndpointConfiguration": {
+                    "Types": ["PRIVATE"],
+                    "VpcEndpointIds" : [{"Ref":"APIEndpoint"}]
+                },
+                "Name": {"Fn::Join": ["-", ["APIGW", { "Ref": "AWS::StackName" }]]},
                 "Description": "Used to trigged failover lambda",
+                "Policy": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": "*",
+                            "Action": "execute-api:Invoke",
+                            "Resource": {"Fn::Sub" : "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*" }
+                        },
+                        {
+                            "Effect": "Deny",
+                            "Principal": "*",
+                            "Action": "execute-api:Invoke",
+                            "Resource": {"Fn::Sub" : "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*" },
+                            "Condition": {
+                                "StringNotEquals": {
+                                    "aws:SourceVpce": {"Ref":"APIEndpoint"}
+                                }
+                            }
+                        }
+                    ]
+                },
                 "FailOnWarnings": true
+            }
+        },
+        "XZoneHaRes": {
+            "Type": "AWS::ApiGateway::Resource",
+            "DependsOn": [
+                "XZoneHaApi"
+            ],
+            "Properties": {
+                "RestApiId": {
+                    "Ref": "XZoneHaApi"
+                },
+                "ParentId": {
+                    "Fn::GetAtt": ["XZoneHaApi", "RootResourceId"]
+                },
+                "PathPart": "xzoneha"
+            }
+        },
+        "ApiPostMethod": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "RestApiId": {
+                    "Ref": "XZoneHaApi"
+                },
+                "ResourceId": {
+                    "Ref": "XZoneHaRes"
+                },
+                "HttpMethod": "POST",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                    "Type": "AWS",
+                    "IntegrationHttpMethod": "POST",
+                    "PassthroughBehavior" : "WHEN_NO_TEMPLATES",
+                    "Uri": {
+                        "Fn::Join": ["", ["arn:aws:apigateway:", {
+                            "Ref": "AWS::Region"
+                        }, ":lambda:path/2015-03-31/functions/", {
+                            "Fn::GetAtt": ["CrossZoneLambda", "Arn"]
+                        }, "/invocations"]]
+                    },
+                    "RequestTemplates": {
+                        "application/json": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    "{\n  \"vpcid\" : \"$input.params('vpcid')\"\n",
+                                    "  \"untrustgood\" : \"$input.params('untrustgood')\"\n",
+                                    "  \"untrustdead\" : \"$input.params('untrustdead')\"\n",
+                                    "  \"trustdead\" : \"$input.params('trustdead')\"\n",
+                                    "  \"trustgood\" : \"$input.params('trustgood')\"\n}"
+                                ]
+                            ]
+                        }
+                    },
+                    "IntegrationResponses": [{
+                        "StatusCode": "200"
+                    }]
+                },
+                "RequestParameters": {
+                    "method.request.querystring.vpcid" : false,
+                    "method.request.querystring.trustdead" : false,
+                    "method.request.querystring.trustgood" : false,
+                    "method.request.querystring.untrustdead" : false,
+                    "method.request.querystring.untrustgood" : false
+                },
+                "MethodResponses": [{
+                    "StatusCode": "200",
+                    "ResponseModels": {
+                        "application/json": "Empty"
+                    }
+                }]
 
             }
+        },
+        "ApiDeployment": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "DependsOn": [
+                "ApiPostMethod"
+            ],
+            "Properties": {
+                "RestApiId": {
+                    "Ref": "XZoneHaApi"
+                }
+            }
+        },
+        "XZoneApiStage": {
+            "Type": "AWS::ApiGateway::Stage",
+            "Properties": {
+                "DeploymentId": {
+                    "Ref": "ApiDeployment"
+                },
+                "RestApiId": {
+                    "Ref": "XZoneHaApi"
+                },
+                "StageName": "prod"
+            }
         }
+        
     },
     "Outputs": {
 
