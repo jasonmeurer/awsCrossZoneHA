@@ -15,12 +15,16 @@
             "Default": "crosszoneha.zip"
         },
         "LambdaSubnetIDs" : {
-            "Description" : "Choose 2 Lambda Subnet IDs",
+            "Description" : "Choose 2 Lambda/ApiGW Subnet IDs",
             "Type" : "List<AWS::EC2::Subnet::Id>"
         },
         "LambdaSecurityID" : {
-            "Description" : "Choose the lambda security group",
+            "Description" : "Choose the lambda/ApiGW security group",
             "Type" : "List<AWS::EC2::SecurityGroup::Id>"
+        },
+        "VPCID" : {
+            "Description" : "Choose the VPC",
+            "Type" : "AWS::EC2::VPC::Id"
         }
     },
     "Mappings": {
@@ -29,7 +33,26 @@
     "Conditions": {
 
     },
-    "Resources": {    
+    "Resources": {
+        "APIEndpoint" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+               "PolicyDocument" : {
+                  "Version":"2012-10-17",
+                  "Statement":[{
+                     "Effect":"Allow",
+                     "Principal": "*",
+                     "Action":["*"],
+                     "Resource":["*"]
+                  }]
+            },
+            "ServiceName" : { "Fn::Sub": "com.amazonaws.${AWS::Region}.execute-api" },
+            "SubnetIds" :  {"Ref":"LambdaSubnetIDs"}, 
+            "SecurityGroupIds" :  {"Ref":"LambdaSecurityID"},
+            "VpcEndpointType" : "Interface",   
+            "VpcId" : {"Ref" : "VPCID"}
+          }
+         },    
         "CrossZoneRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
@@ -89,7 +112,7 @@
                 "Runtime": "python3.8",
                 "Timeout": 30,
                 "VpcConfig": {
-                    "SecurityGroupIds" :  {"Ref":"LambdaSecurityID"} ,
+                    "SecurityGroupIds" :  {"Ref":"LambdaSecurityID"},
                     "SubnetIds" :  {"Ref":"LambdaSubnetIDs"} 
                 }
             }

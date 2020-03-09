@@ -26,10 +26,10 @@ def lambda_handler(event, context):
         return
     #print(r)
     #print(r.status)
-    #print(r.data)
-    if ('neverssl' in str(r.data)) and (r.status == 200):
+    #print(r.headers)
+    if (r.status == 200):
         logger.info("*****Path 200OK*****")
-    elif ('neverssl' in str(r.data)) and (r.status == 302):
+    elif (r.status == 302):
         logger.info("*****Site Redirected*****")
     else:
         logger.info("*****Site NOT 200OK*****")
@@ -45,26 +45,28 @@ def lambda_handler(event, context):
             },
         ]
     )
+    if route_table.get('RouteTables'):
+        for i in range(len(route_table['RouteTables'])):
+            routes = route_table['RouteTables'][i]['Routes']
+            for route in routes:
+                    key = 'NetworkInterfaceId'
+                    if key in route:
+                        if route['NetworkInterfaceId'] == event['untrustdead']:
+                            response = ec2_client.replace_route(
+                                RouteTableId=(route_table['RouteTables'][i]['RouteTableId']),
+                                DryRun=False,
+                                NetworkInterfaceId=event['untrustgood'],
+                                DestinationCidrBlock=(route['DestinationCidrBlock'])
+                            )
+                            logger.info("Success! Changing {} route next hop to {} in route table {} .... response {}".format(route['DestinationCidrBlock'], event['untrustgood'],route_table['RouteTables'][i]['RouteTableId'],response))
+                        elif route['NetworkInterfaceId'] == event['trustdead']:
 
-    for i in range(len(route_table['RouteTables'])):
-        routes = route_table['RouteTables'][i]['Routes']
-        for route in routes:
-                key = 'NetworkInterfaceId'
-                if key in route:
-                    if route['NetworkInterfaceId'] == event['untrustdead']:
-                        response = ec2_client.replace_route(
-                            RouteTableId=(route_table['RouteTables'][i]['RouteTableId']),
-                            DryRun=False,
-                            NetworkInterfaceId=event['untrustgood'],
-                            DestinationCidrBlock=(route['DestinationCidrBlock'])
-                        )
-                        logger.info("Success! Changing {} route next hop to {} in route table {} .... response {}".format(route['DestinationCidrBlock'], event['untrustgood'],route_table['RouteTables'][i]['RouteTableId'],response))
-                    elif route['NetworkInterfaceId'] == event['trustdead']:
-
-                        response = ec2_client.replace_route(
-                            RouteTableId=(route_table['RouteTables'][i]['RouteTableId']),
-                            DryRun=False,
-                            NetworkInterfaceId=event['trustgood'],
-                            DestinationCidrBlock=(route['DestinationCidrBlock'])
-                        )
-                        logger.info("Success! Changing {} route next hop to {} in route table {} .... response {}".format(route['DestinationCidrBlock'], event['trustgood'],route_table['RouteTables'][i]['RouteTableId'],response))                    
+                            response = ec2_client.replace_route(
+                                RouteTableId=(route_table['RouteTables'][i]['RouteTableId']),
+                                DryRun=False,
+                                NetworkInterfaceId=event['trustgood'],
+                                DestinationCidrBlock=(route['DestinationCidrBlock'])
+                            )
+                            logger.info("Success! Changing {} route next hop to {} in route table {} .... response {}".format(route['DestinationCidrBlock'], event['trustgood'],route_table['RouteTables'][i]['RouteTableId'],response))                    
+    else:
+        logger.info('No routes to process')
