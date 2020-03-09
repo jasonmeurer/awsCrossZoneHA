@@ -28,7 +28,7 @@ set network virtual-router default routing-table ip static-route vpccidr destina
 commit
 
 
-set address pathcheckfqdn fqdn neverssl.com
+set address pathcheckfqdn fqdn checkip.amazonaws.com
 set address trustip ip-netmask XXX_LOCAL_TRUST_IP_XXX
 set address peertrustip ip-netmask XXX_PEER_TRUST_IP_XXX
 set address lambdasn1 ip-netmask XXX_Lambda1_CIDR_XXX

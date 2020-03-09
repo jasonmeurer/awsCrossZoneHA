@@ -93,6 +93,15 @@
                     "SubnetIds" :  {"Ref":"LambdaSubnetIDs"} 
                 }
             }
+        },
+        "TransitVpcWebApi": {
+            "Type": "AWS::ApiGateway::RestApi",
+            "Properties": {
+                "Name": "CrossZoneHaApiGw",
+                "Description": "Used to trigged failover lambda",
+                "FailOnWarnings": true
+
+            }
         }
     },
     "Outputs": {
