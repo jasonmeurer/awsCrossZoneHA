@@ -3,7 +3,9 @@
 ## Overview
 The intent of this project is to provide the necessary components to deploy a pair of Palo Alto Firewalls in 2 different zones of the same VPC.  The firewalls will then monitor each other and trigger a route table failover in the event the peer firewall is not passing traffic.  This solution overcomes the limitation of traditional HA being required to run within a given AZ.  This avoids the long CRON timer limitation when using CloudWatch events.
 
-Common drivers for this solution are East-West routing in a [Transit Gateway Design](https://www.paloaltonetworks.com/resources/guides/aws-transit-gateway-deployment-guide) and [AWS Ingress Routing](https://live.paloaltonetworks.com/t5/Blogs/Amazon-Web-Services-AWS-Ingress-Routing/ba-p/300885).  THe user can select from either the single NIC solution or the dual NIC solution.  Single NIC solutions will typically be utlized for single Zone design for example TGW East-West.  Dual NIC designs are typical in a two Zone for example Ingress Routing.
+Common drivers for this solution are East-West routing in a [Transit Gateway Design](https://www.paloaltonetworks.com/resources/guides/aws-transit-gateway-deployment-guide) and [AWS Ingress Routing](https://live.paloaltonetworks.com/t5/Blogs/Amazon-Web-Services-AWS-Ingress-Routing/ba-p/300885).  The user can select from either the single NIC solution (_Still under deveolpment_) or the dual NIC solution.  Single NIC solutions will typically be utlized for single Zone design for example TGW East-West.  Dual NIC designs are typical in a two Zone for example Ingress Routing.
+
+This solution assumes prior knowledge of AWS EC2, S3 and VPC constructs including Routing, Security Groups and EIPs.  It also assumes prior Palo Alto Networks NGFW knowledge including both the CLI and Web Console.
 
 #### Solution Flow
 - The CloudFormation will deploy the following.
@@ -33,6 +35,10 @@ Common drivers for this solution are East-West routing in a [Transit Gateway Des
 This solution is intended for retrofit into an existing VPC environment.  The following items are required to deploy the CloudFormation template.
 
 #### Prequisites
+Download the python file corresponding to you deployment model and add it to zip file.  Create an S3 bucket within region and upload the newly created zip.  Make note of both the bucket and zip file name for use in the CFT deployment.
+
+Download the YAML file corresponding to your deployment model and launch a CloudFormation template utilizing it. 
+
 - FW0MgmtSubnet
 - FW0TrustSubnet
 - FW0UntrustSubnet
@@ -78,3 +84,15 @@ This solution assume the existence of route tables and security groups in the VP
     + Fw ETH1 ETH2 ENIs
 4. SSH into each of the firewalls to configure them with the CLI commands found in the [CLI Text File](https://raw.githubusercontent.com/jasonmeurer/awsCrossZoneHA/master/crosszonehafirewallconfig.txt)
 5. Update the appropriate route tables to point to ENIs of "primary" firewall.
+
+## Validation
+In each of the firewalls, there will a periodic Ping from the peer firewall's trust IP to the local Trust interface that is allowed and NATed on to 8.8.8.  Failover can be triggered via the peer firewall by Sending a Test Log. 
+1. Device Tab, Server Profiles, HTTP.  
+2. Open the AWS_HA_Down object.
+3. Payload Format tab.
+4. Open the System Log Type.
+5. Hit the "Send Test Log" button. 
+6. A dialog will open with Test Results Successfully Sent.
+Access the Monitor Tab of the firewall and verify that an HTTP request has been recieved from either of the Lambda endpoints and succesfully NATed to checkip.amazonaws.com.
+
+Access CloudWatch in the AWS console.  Select Logs and then Log Groups.  Open the stream /aws/lambda/<function_name>.  You can now observe the output of the Path check along with which routes and route tables were modified.
