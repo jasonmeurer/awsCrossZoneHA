@@ -1,11 +1,11 @@
 # AWS Cross Zone Fault Tolerance
 
 ## Overview
-The intent of this project is to provide the necessary components to deploy a pair of Palo Alto Networks Firewalls in 2 different Availability Zones of the same VPC.  The firewalls will then monitor each other and trigger a route table failover in the event the peer firewall is not passing traffic.  This solution overcomes the limitation of traditional HA being required to run within a given AZ.  This also avoids the long CRON timer limitation when using CloudWatch events as trigger in similar solutions.
+This project intends to provide the necessary components to deploy a pair of Palo Alto Networks Firewalls in 2 different Availability Zones of the same VPC.  The firewalls will then monitor each other and trigger a route table failover in the event the peer firewall is not passing traffic.  This solution overcomes the limitation of traditional HA being required to run within a given AZ.  This also avoids the long CRON timer limitation when using CloudWatch events as the trigger in similar solutions.
 
-Common drivers for this solution are East-West routing in a [Transit Gateway Design](https://www.paloaltonetworks.com/resources/guides/aws-transit-gateway-deployment-guide) and [AWS Ingress Routing](https://live.paloaltonetworks.com/t5/Blogs/Amazon-Web-Services-AWS-Ingress-Routing/ba-p/300885).  The user can select from either the single NIC solution (_Still under deveolpment_) or the dual NIC solution.  Single NIC solutions will typically be utlized for single Zone design for example TGW East-West.  Dual NIC designs are typical in a two Zone for example Ingress Routing.
+Common drivers for this solution are East-West routing in a [Transit Gateway Design](https://www.paloaltonetworks.com/resources/guides/aws-transit-gateway-deployment-guide) and [AWS Ingress Routing](https://live.paloaltonetworks.com/t5/Blogs/Amazon-Web-Services-AWS-Ingress-Routing/ba-p/300885).  The user can select from either the single NIC solution (_Still under deveolpment_) or the dual NIC solution.  Single NIC solutions will typically be utilized for single Zone design, for example, TGW East-West.  Dual NIC designs are typical in a two Zone, for example, Ingress Routing.
 
-This solution assumes prior knowledge of AWS EC2, S3 and VPC constructs including Routing, Security Groups and EIPs.  It also assumes prior Palo Alto Networks NGFW knowledge including both the CLI and Web Console.
+This solution assumes prior knowledge of AWS EC2, S3 and VPC constructs including Routing, Security Groups, and EIPs.  It also assumes prior Palo Alto Networks NGFW knowledge including both the CLI and Web Console.
 
 #### Solution Flow
 - The CloudFormation will deploy the following.
@@ -22,8 +22,8 @@ This solution assumes prior knowledge of AWS EC2, S3 and VPC constructs includin
 
 - The firewalls utilize Path Monitoring to determine if the peer firewall is passing traffic.
   + The peer firewall destination NATs the ping probe on to 8.8.8.8.  (Configurable)
-  + The path monitor is not configured with a Preemptive Hold Timer ensure a rapid failover.
-- In the event of a path outage, the firewall utilizes Action Oriented Log Forwarding to notify an API Gateway of the outage.
+  + The path monitor is not configured with a Preemptive Hold Timer to ensure a rapid failover.
+- In the event of a path outage, the firewall utilizes Action-Oriented Log Forwarding to notify an API Gateway of the outage.
 - The firewall will pass the necessary VPC and ENI information to the API Gateway.
 - The API Gateway triggers a Lambda Script to initiate the failover.
 - The Lambda Script first initiates an HTTP call to the firewall to validate the failover path is available.
@@ -34,8 +34,8 @@ This solution assumes prior knowledge of AWS EC2, S3 and VPC constructs includin
 ## CloudFormation Deployment
 This solution is intended for retrofit into an existing VPC environment.  The following items are required to deploy the CloudFormation template.
 
-#### Prequisites
-Download the python file corresponding to you deployment model and add it to zip file.  Create an S3 bucket within region and upload the newly created zip.  Make note of both the bucket and zip file name for use in the CFT deployment.
+#### Prerequisites
+Download the python file corresponding to your deployment model and add it to the zip file.  Create an S3 bucket within the region and upload the newly created zip.  Make note of both the bucket and zip file name for use in the CFT deployment.
 
 Download the YAML file corresponding to your deployment model and launch a CloudFormation template utilizing it. 
 
@@ -72,7 +72,7 @@ This solution assumes the existence of route tables and security groups in the V
 1. Apply Security Groups to all firewall interfaces to ensure the necessary access.  
 2. Apply EIPs where appropriate.
     + If managing the firewall via the internet, apply an EIP to ETH0.
-    + If the firewall will route traffic to or from an IGW, apply an EIP to ETH1.  **NOTE** The health check require internet routing from ETH1.  If an EIP is not assigned, the interface should be in a subnet that has a default route to a NAT Gateway.
+    + If the firewall will route traffic to or from an IGW, apply an EIP to ETH1.  **NOTE** The health check requires internet routing from ETH1.  If an EIP is not assigned, the interface should be in a subnet that has a default route to a NAT Gateway.
 3. Make note of the following items as they will be utilized in the firewall configuration.
     + +++_ VPC_ID_+++
     + +++_ VPC_CIDR_+++
@@ -88,13 +88,13 @@ This solution assumes the existence of route tables and security groups in the V
 
 ## Validation
 In each of the firewalls, there will be a periodic Ping from the peer firewall's trust IP to the local Trust interface that is allowed and NATed on to 8.8.8.8.  Failover can be triggered via the peer firewall by Sending a Test Log or by blocking that ping on the primary firewall. 
-1. In order to trigger a failover, access the Device Tab, Server Profiles, HTTP.  
+1. To trigger a failover, access the Device Tab, Server Profiles, HTTP.  
 2. Open the AWS_HA_Down object.
 3. Payload Format tab.
 4. Open the System Log Type.
 5. Hit the "Send Test Log" button. 
 6. A dialog will open with Test Results Successfully Sent.
 
-Access the Monitor Tab of the firewall and verify that an HTTP request has been recieved from either of the Lambda endpoints and succesfully NATed to checkip.amazonaws.com.
+Access the Monitor Tab of the firewall and verify that an HTTP request has been received from either of the Lambda endpoints and successfully NATed to checkip.amazonaws.com.
 
 Access CloudWatch in the AWS console.  Select Logs and then Log Groups.  Open the stream /aws/lambda/<function_name>.  You can now observe the output of the Path check along with which routes and route tables were modified.
