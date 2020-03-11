@@ -72,7 +72,7 @@ This solution assumes the existence of route tables and security groups in the V
 1. Apply Security Groups to all firewall interfaces to ensure the necessary access.  
 2. Apply EIPs where appropriate.
     + If managing the firewall via the internet, apply an EIP to ETH0.
-    + If the firewall will route traffic to or from an IGW, apply an EIP to ETH1.
+    + If the firewall will route traffic to or from an IGW, apply an EIP to ETH1.  **NOTE** The health check require internet routing from ETH1.  If an EIP is not assigned, the interface should be in a subnet that has a default route to a NAT Gateway.
 3. Make note of the following items as they will be utilized in the firewall configuration.
     + +++_ VPC_ID_+++
     + +++_ VPC_CIDR_+++
