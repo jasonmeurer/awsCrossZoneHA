@@ -67,13 +67,13 @@ The following information is outputted by the CFT for subsequent use in the fire
 - Fw1TrustIP
 
 ## Firewall Configuration Deployment
-This solution assume the existence of route tables and security groups in the VPC.  Once the firewalls are deployed, the following steps should be performed.
+This solution assumes the existence of route tables and security groups in the VPC.  Once the firewalls are deployed, the following steps should be performed.
 
-1. Apply Security Groups to all firewall interfaces to ensure necessary access.  
-2. Apply EIPs where necessary.
+1. Apply Security Groups to all firewall interfaces to ensure the necessary access.  
+2. Apply EIPs where appropriate.
     + If managing the firewall via the internet, apply an EIP to ETH0.
     + If the firewall will route traffic to or from an IGW, apply an EIP to ETH1.
-3. Make note of the following items as they will utilized in the firewall configuration.
+3. Make note of the following items as they will be utilized in the firewall configuration.
     + +++_ VPC_ID_+++
     + +++_ VPC_CIDR_+++
     + +++_ SECOND_IP_OF_VPC_CIDR_+++
@@ -83,17 +83,18 @@ This solution assume the existence of route tables and security groups in the VP
     + +++_ Lambda2_CIDR_+++
     + Fw Trust IPs
     + Fw ETH1 ETH2 ENIs
-4. SSH into each of the firewalls to configure them with the CLI commands found in the [CLI Text File](https://raw.githubusercontent.com/jasonmeurer/awsCrossZoneHA/master/crosszonehafirewallconfig.txt)
+4. SSH into each of the firewalls to configure them with the CLI commands found in the CLI text file corresponding to your deployment.
 5. Update the appropriate route tables to point to ENIs of "primary" firewall.
 
 ## Validation
-In each of the firewalls, there will a periodic Ping from the peer firewall's trust IP to the local Trust interface that is allowed and NATed on to 8.8.8.  Failover can be triggered via the peer firewall by Sending a Test Log. 
-1. Device Tab, Server Profiles, HTTP.  
+In each of the firewalls, there will be a periodic Ping from the peer firewall's trust IP to the local Trust interface that is allowed and NATed on to 8.8.8.8.  Failover can be triggered via the peer firewall by Sending a Test Log or by blocking that ping on the primary firewall. 
+1. In order to trigger a failover, access the Device Tab, Server Profiles, HTTP.  
 2. Open the AWS_HA_Down object.
 3. Payload Format tab.
 4. Open the System Log Type.
 5. Hit the "Send Test Log" button. 
 6. A dialog will open with Test Results Successfully Sent.
+
 Access the Monitor Tab of the firewall and verify that an HTTP request has been recieved from either of the Lambda endpoints and succesfully NATed to checkip.amazonaws.com.
 
 Access CloudWatch in the AWS console.  Select Logs and then Log Groups.  Open the stream /aws/lambda/<function_name>.  You can now observe the output of the Path check along with which routes and route tables were modified.
