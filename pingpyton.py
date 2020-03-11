@@ -11,7 +11,7 @@ def lambda_handler(event, context):
     #site = "10.99.70.195"
     urlvar = 'http://' + eniinfo
     try:
-        r = http.request('GET', urlvar, headers={'Host': 'neverssl.com'}, timeout=5.0, retries=1)
+        r = http.request('GET', urlvar, headers={'Host': 'checkip.amazonaws.com'}, timeout=5.0, retries=1)
     except:
         print('*****path check failed*****')    
         return
