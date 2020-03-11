@@ -67,13 +67,13 @@ This solution assume the existence of route tables and security groups in the VP
     + If managing the firewall via the internet, apply an EIP to ETH0.
     + If the firewall will route traffic to or from an IGW, apply an EIP to ETH1.
 3. Make note of the following items as they will utilized in the firewall configuration.
-    + +++_VPC_ID_+++
-    + +++_VPC_CIDR_+++
-    + +++_SECOND_IP_OF_VPC_CIDR_+++
-    + +++_YOUR_API_GATEWAY_HOST__+++
-    + +++_First_IP_of_Trust_subnet_+++
-    + +++_Lambda1_CIDR_+++
-    + +++_Lambda2_CIDR_+++
+    + +++_ VPC_ID_+++
+    + +++_ VPC_CIDR_+++
+    + +++_ SECOND_IP_OF_VPC_CIDR_+++
+    + +++_ YOUR_API_GATEWAY_HOST__+++
+    + +++_ First_IP_of_Trust_subnet_+++
+    + +++_ Lambda1_CIDR_+++
+    + +++_ Lambda2_CIDR_+++
     + Fw Trust IPs
     + Fw ETH1 ETH2 ENIs
 4. SSH into each of the firewalls to configure them with the CLI commands found in the [CLI Text File](https://raw.githubusercontent.com/jasonmeurer/awsCrossZoneHA/master/crosszonehafirewallconfig.txt)
