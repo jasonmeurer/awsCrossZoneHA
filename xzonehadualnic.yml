@@ -227,14 +227,14 @@ Resources:
             - ''
             - - |
                 {
-                  "vpcid" : "$input.params('vpcid'),"
+                  "vpcid" : "$input.params('vpcid')",
               - |2
-                  "untrustgood" : "$input.params('untrustgood'),"
+                  "untrustgood" : "$input.params('untrustgood')",
               - |2
-                  "untrustdead" : "$input.params('untrustdead'),"
+                  "untrustdead" : "$input.params('untrustdead')",
               - |2
-                  "trustdead" : "$input.params('trustdead'),"
-              - |2-
+                  "trustdead" : "$input.params('trustdead')",
+              - |2
                   "trustgood" : "$input.params('trustgood')"
                 }
         IntegrationResponses:

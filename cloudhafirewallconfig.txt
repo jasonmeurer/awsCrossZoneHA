@@ -10,13 +10,14 @@ Fw Trust IPs
 Fw ETH1 ETH2 ENIs
 
 set mgt-config users admin password
+set deviceconfig system hostname XXX_Firewall_Name_XXX
 commit 
 
 configure
 set deviceconfig system dns-setting servers primary XXX_SECOND_IP_OF_VPC_CIDR_XXX
 
 set network interface ethernet ethernet1/1 layer3 dhcp-client create-default-route yes enable yes 
-set network interface ethernet ethernet1/2 layer3 dhcp-client create-default-route yes enable yes 
+set network interface ethernet ethernet1/2 layer3 dhcp-client create-default-route no enable yes 
 
 set zone untrust network layer3 ethernet1/1
 set zone trust network layer3 ethernet1/2
@@ -34,14 +35,14 @@ set address peertrustip ip-netmask XXX_PEER_TRUST_IP_XXX
 set address lambdasn1 ip-netmask XXX_Lambda1_CIDR_XXX
 set address lambdasn2 ip-netmask XXX_Lambda2_CIDR_XXX
 
-set rulebase security rules allowping from any to any source peertrustip application ping action allow service application-default 
-set rulebase security rules allowpathcheck source lambdasn1 service service-http to any application any action allow destination any 
-set rulebase security rules allowpathcheck source lambdasn2 service service-http to any application any action allow destination any 
+set rulebase security rules allowping from any to any source peertrustip destination any application ping action allow service application-default 
+set rulebase security rules allowpathcheck from any source lambdasn1 service service-http to any application any action allow destination any 
+set rulebase security rules allowpathcheck from any source lambdasn2 service service-http to any application any action allow destination any 
 move rulebase security rules allowping top
 move rulebase security rules allowpathcheck after allowping
 
 set rulebase nat rules pingnat source peertrustip service any destination any to trust dynamic-destination-translation translated-address 8.8.8.8 distribution round-robin 
-set rulebase nat rules pingnat source-translation dynamic-ip-and-port interface-address interface ethernet1/1 
+set rulebase nat rules pingnat from any source-translation dynamic-ip-and-port interface-address interface ethernet1/1 
 
 set rulebase nat rules pathchecknat source lambdasn1 from any service service-http destination trustip source-translation dynamic-ip-and-port interface-address interface ethernet1/1
 set rulebase nat rules pathchecknat source lambdasn2 to trust dynamic-destination-translation translated-address pathcheckfqdn
@@ -64,13 +65,12 @@ set network virtual-router default routing-table ip static-route "Monitor" desti
 set network virtual-router default routing-table ip static-route "Monitor" route-table unicast 
 
 set shared log-settings http AWS_HA_Down server AWS-API-Gateway address XXX_YOUR_API_GATEWAY_HOST__XXX
-set shared log-settings http AWS_HA_Down server AWS-API-Gateway address s0nkbkp77g.execute-api.us-west-2.amazonaws.com
 set shared log-settings http AWS_HA_Down server AWS-API-Gateway http-method POST
 set shared log-settings http AWS_HA_Down server AWS-API-Gateway protocol HTTPS
 set shared log-settings http AWS_HA_Down server AWS-API-Gateway port 443
 
 set shared log-settings http AWS_HA_Down format system name "AWS HA Down"
-set shared log-settings http AWS_HA_Down format system url-format /prod/cloudha/
+set shared log-settings http AWS_HA_Down format system url-format /prod/xzoneha/
 set shared log-settings http AWS_HA_Down format system headers Content-Type value application/json
 
 set shared log-settings http AWS_HA_Down format system params trustdead value XXX_peerfirewall_trust_ENI_XXX
