@@ -3,7 +3,7 @@
 ## Overview
 The intent of this project is to provide the necessary components to deploy a pair of Palo Alto Firewalls in 2 different zones of the same VPC.  The firewalls will then monitor each other and trigger a route table failover in the event the peer firewall is not passing traffic.  This solution overcomes the limitation of traditional HA being required to run within a given AZ.  This avoids the long CRON timer limitation when using CloudWatch events.
 
-Common drivers for this solution are East-West routing in a [Transit Gateway Design](https://www.paloaltonetworks.com/resources/guides/aws-transit-gateway-deployment-guide) and [AWS Ingress Routing](https://live.paloaltonetworks.com/t5/Blogs/Amazon-Web-Services-AWS-Ingress-Routing/ba-p/300885). 
+Common drivers for this solution are East-West routing in a [Transit Gateway Design](https://www.paloaltonetworks.com/resources/guides/aws-transit-gateway-deployment-guide) and [AWS Ingress Routing](https://live.paloaltonetworks.com/t5/Blogs/Amazon-Web-Services-AWS-Ingress-Routing/ba-p/300885).  THe user can select from either the single NIC solution or the dual NIC solution.  Single NIC solutions will typically be utlized for single Zone design for example TGW East-West.  Dual NIC designs are typical in a two Zone for example Ingress Routing.
 
 #### Solution Flow
 - The CloudFormation will deploy the following.
@@ -49,16 +49,32 @@ This solution is intended for retrofit into an existing VPC environment.  The fo
 - VPCID
 
 #### CloudFormation Outputs
-{
+The following information is outputted by the CFT for subsequent use in the firewall configuration script.
 
-  "vpcid": "vpc-xxxxxxxxxxx",
-  
-  "untrustdead": "eni-xxxxxxxxx",
-  
-  "untrustgood": "eni-xxxxxxxxxx",
-  
-  "trustdead": "eni-xxxxxxxxxxxx",
-  
-  "trustgood": "eni-xxxxxxxxxx"
-  
-}
+- ApiGwUrl
+- FW0TrustENI
+- FW0UntrustENI
+- FW1TrustENI
+- FW1UntrustENI
+- Fw0TrustIP
+- Fw1TrustIP
+
+## Firewall Configuration Deployment
+This solution assume the existence of route tables and security groups in the VPC.  Once the firewalls are deployed, the following steps should be performed.
+
+1. Apply Security Groups to all firewall interfaces to ensure necessary access.  
+2. Apply EIPs where necessary.
+    + If managing the firewall via the internet, apply an EIP to ETH0.
+    + If the firewall will route traffic to or from an IGW, apply an EIP to ETH1.
+3. Make note of the following items as they will utilized in the firewall configuration.
+    + +++_VPC_ID_+++
+    + +++_VPC_CIDR_+++
+    + +++_SECOND_IP_OF_VPC_CIDR_+++
+    + +++_YOUR_API_GATEWAY_HOST__+++
+    + +++_First_IP_of_Trust_subnet_+++
+    + +++_Lambda1_CIDR_+++
+    + +++_Lambda2_CIDR_+++
+    + Fw Trust IPs
+    + Fw ETH1 ETH2 ENIs
+4. SSH into each of the firewalls to configure them with the CLI commands found in the [CLI Text File](https://raw.githubusercontent.com/jasonmeurer/awsCrossZoneHA/master/crosszonehafirewallconfig.txt)
+5. Update the appropriate route tables to point to ENIs of "primary" firewall.
