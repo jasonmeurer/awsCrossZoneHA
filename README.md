@@ -3,7 +3,7 @@
 ## Overview
 This project intends to provide the necessary components to deploy a pair of Palo Alto Networks Firewalls in 2 different Availability Zones of the same VPC.  The firewalls will then monitor each other and trigger a route table failover in the event the peer firewall is not passing traffic.  This solution overcomes the limitation of traditional HA being required to run within a given AZ.  This also avoids the long CRON timer limitation when using CloudWatch events as the trigger in similar solutions.
 
-Common drivers for this solution are East-West routing in a [Transit Gateway Design](https://www.paloaltonetworks.com/resources/guides/aws-transit-gateway-deployment-guide) and [AWS Ingress Routing](https://live.paloaltonetworks.com/t5/Blogs/Amazon-Web-Services-AWS-Ingress-Routing/ba-p/300885).  The user can select from either the single NIC solution (_Still under deveolpment_) or the dual NIC solution.  Single NIC solutions will typically be utilized for single Zone design, for example, TGW East-West.  Dual NIC designs are typical in a two Zone, for example, Ingress Routing.
+Common drivers for this solution are East-West routing in a [Transit Gateway Design](https://www.paloaltonetworks.com/resources/guides/aws-transit-gateway-deployment-guide) and [AWS Ingress Routing](https://live.paloaltonetworks.com/t5/Blogs/Amazon-Web-Services-AWS-Ingress-Routing/ba-p/300885).  The user can select from either the single NIC solution or the dual NIC solution.  Single NIC solutions will typically be utilized for single Zone design, for example, TGW East-West.  Dual NIC designs are typical in a two Zone, for example, Ingress Routing.
 
 This solution assumes prior knowledge of AWS EC2, S3 and VPC constructs including Routing, Security Groups, and EIPs.  It also assumes prior Palo Alto Networks NGFW knowledge including both the CLI and Web Console.
 
@@ -60,9 +60,9 @@ The following information is outputted by the CFT for subsequent use in the fire
 
 - API Gateway URL
 - FW0TrustENI
-- FW0UntrustENI
+- FW0UntrustENI (Dual Nic Only)
 - FW1TrustENI
-- FW1UntrustENI
+- FW1UntrustENI (Dual Nic Only)
 - Fw0TrustIP
 - Fw1TrustIP
 
@@ -87,7 +87,7 @@ This solution assumes the existence of route tables and security groups in the V
 5. Update the appropriate route tables to point to ENIs of "primary" firewall.
 
 ## Validation
-In each of the firewalls, there will be a periodic Ping from the peer firewall's trust IP to the local Trust interface that is allowed and NATed on to 8.8.8.8.  Failover can be triggered via the peer firewall by Sending a Test Log or by blocking that ping on the primary firewall. 
+In each of the firewalls, there will be a periodic Ping from the peer firewall's trust IP to the local Trust interface that is allowed and NATed on to 8.8.8.8 for dual nic and the first IP of the Trust subnet for single NIC.  Failover can be triggered via the peer firewall by Sending a Test Log or by blocking that ping on the primary firewall. 
 1. To trigger a failover, access the Device Tab, Server Profiles, HTTP.  
 2. Open the AWS_HA_Down object.
 3. Payload Format tab.
@@ -95,6 +95,6 @@ In each of the firewalls, there will be a periodic Ping from the peer firewall's
 5. Hit the "Send Test Log" button. 
 6. A dialog will open with Test Results Successfully Sent.
 
-Access the Monitor Tab of the firewall and verify that an HTTP request has been received from either of the Lambda endpoints and successfully NATed to checkip.amazonaws.com.
+Access the Monitor Tab of the firewall and verify that an HTTP request has been received from either of the Lambda endpoints and successfully NATed to checkip.amazonaws.com for dual nic and to a loopback with a management profile for dual nic.
 
 Access CloudWatch in the AWS console.  Select Logs and then Log Groups.  Open the stream /aws/lambda/<function_name>.  You can now observe the output of the Path check along with which routes and route tables were modified.
