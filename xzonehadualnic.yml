@@ -148,7 +148,7 @@ Resources:
         S3Bucket: !Ref S3Bucket
         S3Key: !Ref S3Key
       Description: XZoneHA for Palo Alto Networks virtual firewalls
-      Handler: crosszonehawithpathcheck.lambda_handler
+      Handler: crosszonehawithpathcheckdualnic.lambda_handler
       Role: !GetAtt 
         - XZoneRole
         - Arn
