@@ -7,23 +7,18 @@ Parameters:
   S3Bucket:
     Description: S3 Bucket containing Lambda service code
     Type: String
-    Default: jjmcrosszoneha
   S3Key:
     Description: S3 Zip file containg Lambda service code
     Type: String
-    Default: crosszoneha.zip
   LambdaSubnetIDs:
     Description: Choose 2 Lambda/ApiGW Subnet IDs
     Type: 'List<AWS::EC2::Subnet::Id>'
-    Default: subnet-035275f2d396549d9,subnet-03bc217b7a13f8e24
   LambdaSecurityID:
     Description: Choose the lambda/ApiGW security group
     Type: 'List<AWS::EC2::SecurityGroup::Id>'
-    Default: sg-05416aa8f20712232
   VPCID:
     Description: Choose the VPC
     Type: 'AWS::EC2::VPC::Id'
-    Default: vpc-0618f904d06212d5a
   #VpcAzs:
   #  Type: List<AWS::EC2::AvailabilityZone::Name>
   #  Description: Select 2 AZs  
@@ -31,35 +26,27 @@ Parameters:
   FW0UntrustSubnet:
     Description: Choose the first FW Untrust Subnet
     Type: 'AWS::EC2::Subnet::Id'
-    Default: subnet-087aa1d08c94b0458
   FW0TrustSubnet:
     Description: Choose the first FW Trust Subnet
     Type: 'AWS::EC2::Subnet::Id'
-    Default: subnet-098150c01872b9a05
   FW0MgmtSubnet:
     Description: Choose the first FW Management Subnet
     Type: 'AWS::EC2::Subnet::Id'
-    Default: subnet-087aa1d08c94b0458
   FW1UntrustSubnet:
     Description: Choose the second FW Untrust Subnet
     Type: 'AWS::EC2::Subnet::Id'
-    Default: subnet-07a05fe44f1d0b30f
   FW1TrustSubnet:
     Description: Choose the second FW Trust Subnet
     Type: 'AWS::EC2::Subnet::Id'
-    Default: subnet-0b6adf97b744210c7
   FW1MgmtSubnet:
     Description: Choose the second FW Management Subnet
     Type: 'AWS::EC2::Subnet::Id'
-    Default: subnet-07a05fe44f1d0b30f
   FirewallAMI:
     Description: Input the firewall AMI ID. https://docs.paloaltonetworks.com/compatibility-matrix/vm-series-firewalls/aws-cft-amazon-machine-images-ami-list
     Type: 'AWS::EC2::Image::Id'
-    Default: ami-0689bbdb0b5044cdd   
   KeyName:
     Description: Amazon EC2 Key Pair
     Type: AWS::EC2::KeyPair::KeyName
-    Default: awsmain
   FWInstanceType:
     Type: String
     Default: c5.xlarge
