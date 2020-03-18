@@ -19,10 +19,6 @@ Parameters:
   VPCID:
     Description: Choose the VPC
     Type: 'AWS::EC2::VPC::Id'
-  #VpcAzs:
-  #  Type: List<AWS::EC2::AvailabilityZone::Name>
-  #  Description: Select 2 AZs  
-  #  Default: us-west-2a,us-west-2b  
   FW0UntrustSubnet:
     Description: Choose the first FW Untrust Subnet
     Type: 'AWS::EC2::Subnet::Id'
