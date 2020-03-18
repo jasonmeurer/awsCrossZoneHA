@@ -24,7 +24,6 @@ set zone trust network layer3 loopback
 set network virtual-router default interface ethernet1/1
 set network virtual-router default interface loopback
 
-set network virtual-router default routing-table ip static-route vpccidr destination +++_VPC_CIDR_+++ interface ethernet1/1 nexthop ip-address +++_First_IP_of_Trust_subnet_+++
 set network profiles interface-management-profile httpmgmt http yes 
 set network interface loopback interface-management-profile httpmgmt 
 commit
@@ -46,7 +45,7 @@ move rulebase security rules allowpathcheck after allowping
 set rulebase nat rules pingnat source peertrustip service any destination any to trust dynamic-destination-translation translated-address pingprobedst distribution round-robin 
 set rulebase nat rules pingnat from any source-translation dynamic-ip-and-port interface-address interface ethernet1/1 
 
-set rulebase nat rules pathchecknat source lambdasn1 from any service service-http destination trustip source-translation dynamic-ip-and-port interface-address interface ethernet1/1
+set rulebase nat rules pathchecknat source lambdasn1 from any service service-http destination trustip 
 set rulebase nat rules pathchecknat source lambdasn2 to trust dynamic-destination-translation translated-address pathcheckfqdn
 
 commit

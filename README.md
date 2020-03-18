@@ -21,13 +21,13 @@ This solution assumes prior knowledge of AWS EC2, S3 and VPC constructs includin
   + AWS::Lambda::Permission
 
 - The firewalls utilize Path Monitoring to determine if the peer firewall is passing traffic.
-  + The peer firewall destination NATs the ping probe on to 8.8.8.8.  (Configurable)
+  + The peer firewall destination NATs the ping probe on to 8.8.8.8 for dual NIC and the first IP of the VPC in a signle NIC design.  (Configurable)
   + The path monitor is not configured with a Preemptive Hold Timer to ensure a rapid failover.
 - In the event of a path outage, the firewall utilizes Action-Oriented Log Forwarding to notify an API Gateway of the outage.
 - The firewall will pass the necessary VPC and ENI information to the API Gateway.
 - The API Gateway triggers a Lambda Script to initiate the failover.
 - The Lambda Script first initiates an HTTP call to the firewall to validate the failover path is available.
-  + The firewall destination NATs the HTTP request on to http://checkip.amazonaws.com. (Configurable)
+  + The firewall destination NATs the HTTP request on to http://checkip.amazonaws.com for dual NIC and to a management profile on an loopback interface in a single NIC design. (Configurable)
 - If the path check is successful, the lambda searches all route tables in the VPC and replaces the down ENIs with the live ENI.
 - No automated failback occurs.  Failback can be triggered from the desired firewall by hitting the "Send Test Log" button in the Payload Format dialog box in the HTTP Server profile.
 
@@ -41,10 +41,10 @@ Download the YAML file corresponding to your deployment model and launch a Cloud
 
 - FW0MgmtSubnet
 - FW0TrustSubnet
-- FW0UntrustSubnet
+- FW0UntrustSubnet (Dual NIC only)
 - FW1MgmtSubnet
 - FW1TrustSubnet
-- FW1UntrustSubnet
+- FW1UntrustSubnet (Dual NIC only)
 - FWInstanceType
 - FirewallAMI [AMIs can be found here](https://docs.paloaltonetworks.com/compatibility-matrix/vm-series-firewalls/aws-cft-amazon-machine-images-ami-list) 
 - KeyName
