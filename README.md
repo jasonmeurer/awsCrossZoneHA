@@ -99,6 +99,6 @@ Access the Monitor Tab of the firewall and verify that an HTTP request has been 
 
 Access CloudWatch in the AWS console.  Select Logs and then Log Groups.  Open the stream /aws/lambda/<function_name>.  You can now observe the output of the Path check along with which routes and route tables were modified.
 
-<img src="AWSXZoneHA-before.png" width="500" title="Before Logo">
-<img src="AWSXZoneHA-after.png" width="500" title="Before Logo">
+<img src="AWSXZoneHA-before.png" width="750" title="Before Logo">
+<img src="AWSXZoneHA-after.png" width="750" title="Before Logo">
 
