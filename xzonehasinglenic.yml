@@ -7,7 +7,6 @@ Parameters:
   S3Bucket:
     Description: S3 Bucket containing Lambda service code
     Type: String
-    Default: jjmcrosszoneha
   S3Key:
     Description: S3 Zip file containg Lambda service code
     Type: String
